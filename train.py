@@ -8,7 +8,7 @@ import pandas as pd
 
 from mobilenet_v2 import MobileNetv2
 
-from keras.optimizers import Adam
+from keras.optimizers import RMSprop
 from keras.preprocessing.image import ImageDataGenerator
 from keras.callbacks import EarlyStopping
 from keras.layers import Conv2D, Reshape, Activation
@@ -20,11 +20,12 @@ def main(argv):
     # Required arguments.
     parser.add_argument(
         "--classes",
+        default=26,
         help="The number of classes of dataset.")
     # Optional arguments.
     parser.add_argument(
         "--size",
-        default=224,
+        default=128,
         help="The image size of train sample.")
     parser.add_argument(
         "--batch",
@@ -32,7 +33,7 @@ def main(argv):
         help="The number of train samples per batch.")
     parser.add_argument(
         "--epochs",
-        default=300,
+        default=100,
         help="The number of train iterations.")
     parser.add_argument(
         "--weights",
@@ -44,6 +45,7 @@ def main(argv):
         help="The number of classes of pre-trained model.")
 
     args = parser.parse_args()
+
 
     train(int(args.batch), int(args.epochs), int(args.classes), int(args.size), args.weights, int(args.tclasses))
 
@@ -66,14 +68,7 @@ def generate(batch, size):
     ptrain = 'data/train'
     pval = 'data/validation'
 
-    datagen1 = ImageDataGenerator(
-        rescale=1. / 255,
-        shear_range=0.2,
-        zoom_range=0.2,
-        rotation_range=90,
-        width_shift_range=0.2,
-        height_shift_range=0.2,
-        horizontal_flip=True)
+    datagen1 = ImageDataGenerator()
 
     datagen2 = ImageDataGenerator(rescale=1. / 255)
 
@@ -136,13 +131,10 @@ def train(batch, epochs, num_classes, size, weights, tclasses):
 
     train_generator, validation_generator, count1, count2 = generate(batch, size)
 
-    if weights:
-        model = MobileNetv2((size, size, 3), tclasses)
-        model = fine_tune(num_classes, weights, model)
-    else:
-        model = MobileNetv2((size, size, 3), num_classes)
 
-    opt = Adam()
+    model = MobileNetv2((size, size, 3), num_classes)
+
+    opt = RMSprop()
     earlystop = EarlyStopping(monitor='val_acc', patience=30, verbose=0, mode='auto')
     model.compile(loss='categorical_crossentropy', optimizer=opt, metrics=['accuracy'])
 
