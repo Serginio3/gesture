@@ -33,7 +33,7 @@ def main(argv):
         help="The number of train samples per batch.")
     parser.add_argument(
         "--epochs",
-        default=100,
+        default=300,
         help="The number of train iterations.")
     parser.add_argument(
         "--weights",
